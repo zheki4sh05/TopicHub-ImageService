@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: ImageService
+  data:
+    mongodb:
+      port: 27017
+      host: localhost
+      database: imagedb
+  servlet:
+    multipart:
+      max-request-size: 50MB
+      max-file-size: 40MB
+server:
+  port: 8081
+  host: localhost
+
+  MaxUploadSizeExceededException
