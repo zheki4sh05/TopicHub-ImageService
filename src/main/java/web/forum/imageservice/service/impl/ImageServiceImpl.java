@@ -2,18 +2,23 @@ package web.forum.imageservice.service.impl;
 
 import com.mongodb.*;
 import com.mongodb.client.gridfs.model.*;
-import web.forum.imageservice.dto.*;
-import web.forum.imageservice.service.*;
 import lombok.*;
 import org.apache.commons.io.*;
 import org.bson.types.*;
+import org.springframework.data.domain.*;
+import org.springframework.data.mongodb.core.*;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.data.mongodb.gridfs.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.multipart.*;
+import web.forum.imageservice.dto.*;
+import web.forum.imageservice.mapper.*;
+import web.forum.imageservice.model.*;
+import web.forum.imageservice.service.*;
 
 import java.io.*;
 import java.time.*;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -21,6 +26,9 @@ public class ImageServiceImpl implements IImageService {
 
     private final GridFsTemplate template;
     private final GridFsOperations operations;
+    private final MongoTemplate mongoTemplate;
+    private final MetaDataMapper metaDataMapper;
+    private final Integer PAGE_SIZE = 15;
     @Override
     public ImageDto save(MultipartFile multipartFile) {
 
@@ -34,10 +42,10 @@ public class ImageServiceImpl implements IImageService {
                     multipartFile.getContentType(),
                     metadata);
             return ImageDto.builder()
-                    .fileName(fileName)
+                    .filename(fileName)
                     .imageSize(multipartFile.getSize())
                     .uploadDate(LocalDate.now())
-                    .imageId(fileID.toString())
+                    .id(fileID.toString())
                     .build();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -51,13 +59,30 @@ public class ImageServiceImpl implements IImageService {
         ImageDto loadFile = new ImageDto();
 
         if ( gridFSFile.getMetadata() != null) {
-            loadFile.setFileName( gridFSFile.getFilename() );
+            loadFile.setFilename( gridFSFile.getFilename() );
 
-            loadFile.setFileType( gridFSFile.getMetadata().get("_contentType").toString() );
+            loadFile.setContentType( gridFSFile.getMetadata().get("_contentType").toString() );
 
             loadFile.setFile( IOUtils.toByteArray(operations.getResource(gridFSFile).getInputStream()) );
         }
 
         return loadFile;
+    }
+
+    @Override
+    public PageResponse<ImageDto> fetch(Integer page) {
+        Query query = new Query();
+        query.with(PageRequest.of(page-1, PAGE_SIZE));
+        long count = mongoTemplate.count(query, FileMetaData.class);
+        List<FileMetaData> files = mongoTemplate.find(query, FileMetaData.class);
+        return PageResponse.map(metaDataMapper::toDto,
+                PageResponse.<FileMetaData>builder()
+                        .items(files)
+                        .total(count)
+                        .page(page)
+                        .maxPage((int) (count/PAGE_SIZE))
+                        .build()
+                );
+
     }
 }

@@ -10,10 +10,10 @@ import java.time.*;
 @Setter
 @Getter
 public class ImageDto {
-    private String fileName;
+    private String id;
+    private String filename;
     private LocalDate uploadDate;
     private Long imageSize;
-    private String imageId;
-    private String fileType;
+    private String contentType;
     private byte[] file;
 }

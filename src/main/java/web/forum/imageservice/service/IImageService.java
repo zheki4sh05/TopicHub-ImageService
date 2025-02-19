@@ -9,4 +9,6 @@ public interface IImageService {
     ImageDto save(MultipartFile multipartFile);
 
     ImageDto findById(String imageId) throws IOException;
+
+    PageResponse<ImageDto> fetch(Integer page);
 }

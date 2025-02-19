@@ -7,6 +7,7 @@ import org.springframework.web.context.request.*;
 import org.springframework.web.multipart.*;
 import web.forum.imageservice.config.i18n.*;
 import web.forum.imageservice.dto.*;
+import web.forum.imageservice.exceptions.*;
 
 import java.time.*;
 
@@ -17,6 +18,14 @@ public class ExceptionControllerAdvice {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> exceptionEntityNotFound(MaxUploadSizeExceededException e, WebRequest request) {
+        return  createResponse(
+               ErrorKey.SIZE.key(),
+                HttpStatus.BAD_REQUEST,
+                request);
+    }
+
+    @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
+    public ResponseEntity<?> exceptionEntityNotFound(UnsupportedMediaTypeStatusException e, WebRequest request) {
         return  createResponse(
                 e.getMessage(),
                 HttpStatus.BAD_REQUEST,

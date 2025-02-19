@@ -1,15 +1,14 @@
 package web.forum.imageservice.controller;
 
-import jakarta.validation.*;
 import jakarta.validation.constraints.*;
-import org.springframework.web.multipart.*;
-import web.forum.imageservice.dto.*;
-import web.forum.imageservice.exceptions.*;
-import web.forum.imageservice.service.*;
 import lombok.*;
 import org.springframework.core.io.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.*;
+import web.forum.imageservice.dto.*;
+import web.forum.imageservice.exceptions.*;
+import web.forum.imageservice.service.*;
 
 import java.io.*;
 
@@ -29,24 +28,33 @@ public class ImageController {
                 ImageDto imageDto = imageService.save(multipartFile);
                 return new ResponseEntity<>(imageDto, HttpStatus.OK);
             }
-            default-> throw new UnsupportedMediaTypeStatusException();
+            default-> throw new UnsupportedMediaTypeStatusException(ErrorKey.UNSUPPORTED.key());
         }
     }
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<?> fetch(
             @RequestParam String imageId
     ){
-        ImageDto fileDto = null;
+        ImageDto fileDto;
         try {
             fileDto = imageService.findById(imageId);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(fileDto.getFileType() ))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDto.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(fileDto.getContentType() ))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDto.getFilename() + "\"")
                 .body(new ByteArrayResource(fileDto.getFile()));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<PageResponse<ImageDto>> fetchList(
+          @NotNull @RequestParam("page") Integer page
+    ){
+
+        return new ResponseEntity<>(imageService.fetch(page), HttpStatus.OK);
+
     }
 
 
