@@ -28,12 +28,10 @@ public class ImageServiceImpl implements IImageService {
     private final GridFsOperations operations;
     private final MongoTemplate mongoTemplate;
     private final MetaDataMapper metaDataMapper;
-    private final Integer PAGE_SIZE = 15;
+
     @Override
     public ImageDto save(MultipartFile multipartFile) {
-
         DBObject metadata = new BasicDBObject();
-//        metadata.put("id", fileDto.getImageId());
         try {
             String fileName = multipartFile.getOriginalFilename();
             ObjectId fileID = template.store(
@@ -72,6 +70,7 @@ public class ImageServiceImpl implements IImageService {
     @Override
     public PageResponse<ImageDto> fetch(Integer page) {
         Query query = new Query();
+        int PAGE_SIZE = 15;
         query.with(PageRequest.of(page-1, PAGE_SIZE));
         long count = mongoTemplate.count(query, FileMetaData.class);
         List<FileMetaData> files = mongoTemplate.find(query, FileMetaData.class);
@@ -80,7 +79,7 @@ public class ImageServiceImpl implements IImageService {
                         .items(files)
                         .total(count)
                         .page(page)
-                        .maxPage((int) (count/PAGE_SIZE))
+                        .maxPage((int) (count/ PAGE_SIZE))
                         .build()
                 );
 

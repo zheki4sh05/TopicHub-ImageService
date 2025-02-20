@@ -19,13 +19,14 @@ public class ImageController {
 
     private final IImageService imageService;
 
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "",consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> upload(
-         @NotNull @RequestPart MultipartFile multipartFile
+            @RequestParam("file") MultipartFile file
             ){
-        switch (multipartFile.getContentType()) {
+
+        switch (file.getContentType()) {
             case MediaType.IMAGE_PNG_VALUE,MediaType.IMAGE_JPEG_VALUE->{
-                ImageDto imageDto = imageService.save(multipartFile);
+                ImageDto imageDto = imageService.save(file);
                 return new ResponseEntity<>(imageDto, HttpStatus.OK);
             }
             default-> throw new UnsupportedMediaTypeStatusException(ErrorKey.UNSUPPORTED.key());
