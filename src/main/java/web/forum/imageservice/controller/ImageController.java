@@ -58,6 +58,13 @@ public class ImageController {
 
     }
 
+    @DeleteMapping("")
+    public ResponseEntity<String> delete(
+            @RequestParam("id") String imageId
+    ){
+        imageService.delete(imageId);
+        return new ResponseEntity<>(imageId, HttpStatus.OK);
+    }
 
 
 }

@@ -84,4 +84,9 @@ public class ImageServiceImpl implements IImageService {
                 );
 
     }
+
+    @Override
+    public void delete(String imageId) {
+      template.delete(new Query(Criteria.where("_id").is(imageId)));
+    }
 }

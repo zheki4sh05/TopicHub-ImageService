@@ -11,4 +11,6 @@ public interface IImageService {
     ImageDto findById(String imageId) throws IOException;
 
     PageResponse<ImageDto> fetch(Integer page);
+
+    void delete(String imageId);
 }
