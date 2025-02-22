@@ -3,12 +3,15 @@ package web.forum.imageservice.service.impl;
 import com.mongodb.*;
 import com.mongodb.client.gridfs.model.*;
 import lombok.*;
+import lombok.extern.slf4j.*;
 import org.apache.commons.io.*;
 import org.bson.types.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.*;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.data.mongodb.gridfs.*;
+import org.springframework.kafka.core.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.multipart.*;
 import web.forum.imageservice.dto.*;
@@ -21,13 +24,18 @@ import java.time.*;
 import java.util.*;
 
 @Service
-@AllArgsConstructor
+@Slf4j
+@RequiredArgsConstructor
 public class ImageServiceImpl implements IImageService {
+
+    @Value("${spring.kafka.topic.imageSaved}")
+    private String topic1Name;
 
     private final GridFsTemplate template;
     private final GridFsOperations operations;
     private final MongoTemplate mongoTemplate;
     private final MetaDataMapper metaDataMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public ImageDto save(MultipartFile multipartFile) {
@@ -39,15 +47,28 @@ public class ImageServiceImpl implements IImageService {
                     fileName,
                     multipartFile.getContentType(),
                     metadata);
-            return ImageDto.builder()
+
+            var imageDto =  ImageDto.builder()
                     .filename(fileName)
                     .imageSize(multipartFile.getSize())
                     .uploadDate(LocalDate.now())
                     .id(fileID.toString())
                     .build();
+
+//          var kafkaRequest = kafkaTemplate.send(topic1Name, fileID.toString());
+//            kafkaRequest.whenComplete((result, exception)->{
+//                if(exception!=null){
+//                        log.error("failed kafka send message {}", exception.getMessage());
+//                }else{
+//                    log.info("message sent successfully:{}", result.getRecordMetadata());
+//                }
+//            });
+            return imageDto;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+
 
     }
 

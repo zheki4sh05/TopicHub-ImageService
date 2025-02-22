@@ -10,6 +10,18 @@ spring:
     multipart:
       max-request-size: 50MB
       max-file-size: 40MB
+  kafka:
+    producer:
+      properties:
+        enable:
+          idempotence: true
+    bootstrap-servers: localhost:9092
+    listener:
+      auto-startup: false
+    streams:
+      auto-startup: false
+    topic:
+      imageSaved: image.saved
 server:
   port: 8082
   host: localhost

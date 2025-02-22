@@ -16,4 +16,15 @@ public class ImageDto {
     private Long imageSize;
     private String contentType;
     private byte[] file;
+
+    @Override
+    public String toString() {
+        return "ImageDto{" +
+                "id='" + id + '\'' +
+                ", filename='" + filename + '\'' +
+                ", uploadDate=" + uploadDate +
+                ", imageSize=" + imageSize +
+                ", contentType='" + contentType + '\'' +
+                '}';
+    }
 }
