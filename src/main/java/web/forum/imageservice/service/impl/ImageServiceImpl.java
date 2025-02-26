@@ -22,6 +22,7 @@ import web.forum.imageservice.service.*;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.stream.*;
 
 @Service
 @Slf4j
@@ -31,6 +32,7 @@ public class ImageServiceImpl implements IImageService {
     @Value("${spring.kafka.topic.imageSaved}")
     private String topic1Name;
 
+
     private final GridFsTemplate template;
     private final GridFsOperations operations;
     private final MongoTemplate mongoTemplate;
@@ -38,8 +40,10 @@ public class ImageServiceImpl implements IImageService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    public ImageDto save(MultipartFile multipartFile) {
+    public ImageDto save(MultipartFile multipartFile,String targetId,String name) {
         DBObject metadata = new BasicDBObject();
+        metadata.put("targetId", targetId);
+        metadata.put("imageName", name);
         try {
             String fileName = multipartFile.getOriginalFilename();
             ObjectId fileID = template.store(
@@ -75,16 +79,28 @@ public class ImageServiceImpl implements IImageService {
     @Override
     public ImageDto findById(String imageId) throws IOException {
         GridFSFile gridFSFile = template.findOne( new Query(Criteria.where("_id").is(imageId)) );
+
+        byte[] image;
         ImageDto loadFile = new ImageDto();
+        if(gridFSFile==null){
+//            throw new EntityNotFoundException();
+            try(InputStream inputStream =  ImageServiceImpl.class.getResourceAsStream("/default.png")){
+                image = inputStream.readAllBytes();
+                loadFile.setContentType("image/png");
+                loadFile.setTargetId("");
+                loadFile.setFilename("default");
 
-        if ( gridFSFile.getMetadata() != null) {
-            loadFile.setFilename( gridFSFile.getFilename() );
+            }
+        }else{
+            image  = IOUtils.toByteArray(operations.getResource(gridFSFile).getInputStream());
+            if ( gridFSFile.getMetadata() != null) {
+                loadFile.setFilename( gridFSFile.getFilename() );
+                loadFile.setContentType( gridFSFile.getMetadata().get("_contentType").toString() );
+                loadFile.setTargetId((String) gridFSFile.getMetadata().get("targetId"));
 
-            loadFile.setContentType( gridFSFile.getMetadata().get("_contentType").toString() );
-
-            loadFile.setFile( IOUtils.toByteArray(operations.getResource(gridFSFile).getInputStream()) );
-        }
-
+            }
+                  }
+        loadFile.setFile(image);
         return loadFile;
     }
 
@@ -109,5 +125,24 @@ public class ImageServiceImpl implements IImageService {
     @Override
     public void delete(String imageId) {
       template.delete(new Query(Criteria.where("_id").is(imageId)));
+    }
+
+    @Override
+    public PageResponse<ImageDto> search(String name,Integer page) {
+        Query query = new Query(Criteria.where("metadata.imageName").regex(".*" + name + ".*"));
+        long count = mongoTemplate.count(query, FileMetaData.class);
+        List<FileMetaData> files = mongoTemplate.find(query, FileMetaData.class);
+        return PageResponse.<ImageDto>builder()
+                .total(count)
+                .items(files.stream().map(metaDataMapper::toDto).collect(Collectors.toList()))
+                .page(1)
+                .build();
+    }
+
+    @Override
+    public ImageDto getById(String id) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        FileMetaData fileMetaData = mongoTemplate.findOne(query, FileMetaData.class);
+        return metaDataMapper.toDto(fileMetaData);
     }
 }

@@ -7,6 +7,7 @@ import java.time.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = "file")
 @Setter
 @Getter
 public class ImageDto {
@@ -15,16 +16,9 @@ public class ImageDto {
     private LocalDate uploadDate;
     private Long imageSize;
     private String contentType;
+    private String targetId;
+    private String metaName;
     private byte[] file;
 
-    @Override
-    public String toString() {
-        return "ImageDto{" +
-                "id='" + id + '\'' +
-                ", filename='" + filename + '\'' +
-                ", uploadDate=" + uploadDate +
-                ", imageSize=" + imageSize +
-                ", contentType='" + contentType + '\'' +
-                '}';
-    }
+
 }

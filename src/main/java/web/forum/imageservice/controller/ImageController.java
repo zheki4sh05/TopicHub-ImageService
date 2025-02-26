@@ -19,24 +19,26 @@ public class ImageController {
 
     private final IImageService imageService;
 
-    @PostMapping(value = "",consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(value = "", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> upload(
-            @RequestParam("file") MultipartFile file
-            ){
+            @RequestPart("file") MultipartFile file,
+            @RequestPart("targetId") String targetId,
+            @RequestPart("name") String name
+    ) {
 
         switch (file.getContentType()) {
-            case MediaType.IMAGE_PNG_VALUE,MediaType.IMAGE_JPEG_VALUE->{
-                ImageDto imageDto = imageService.save(file);
+            case MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE -> {
+                ImageDto imageDto = imageService.save(file, targetId, name);
                 return new ResponseEntity<>(imageDto, HttpStatus.OK);
             }
-            default-> throw new UnsupportedMediaTypeStatusException(ErrorKey.UNSUPPORTED.key());
+            default -> throw new UnsupportedMediaTypeStatusException(ErrorKey.UNSUPPORTED.key());
         }
     }
 
     @GetMapping("")
     public ResponseEntity<?> fetch(
-            @RequestParam String imageId
-    ){
+            @RequestParam("imageId") String imageId
+    ) {
         ImageDto fileDto;
         try {
             fileDto = imageService.findById(imageId);
@@ -44,15 +46,15 @@ public class ImageController {
             throw new RuntimeException(e);
         }
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(fileDto.getContentType() ))
+                .contentType(MediaType.parseMediaType(fileDto.getContentType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDto.getFilename() + "\"")
                 .body(new ByteArrayResource(fileDto.getFile()));
     }
 
     @GetMapping("/list")
     public ResponseEntity<PageResponse<ImageDto>> fetchList(
-          @NotNull @RequestParam("page") Integer page
-    ){
+            @NotNull @RequestParam("page") Integer page
+    ) {
 
         return new ResponseEntity<>(imageService.fetch(page), HttpStatus.OK);
 
@@ -60,11 +62,26 @@ public class ImageController {
 
     @DeleteMapping("")
     public ResponseEntity<String> delete(
-            @RequestParam("id") String imageId
-    ){
+            @RequestParam("imageId") String imageId
+    ) {
         imageService.delete(imageId);
         return new ResponseEntity<>(imageId, HttpStatus.OK);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<PageResponse<ImageDto>> search(
+            @RequestParam("name") String name,
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page
+    ) {
+        PageResponse<ImageDto> pageResponse = imageService.search(name, page);
+        return new ResponseEntity<>(pageResponse, HttpStatus.OK);
+    }
 
+    @GetMapping("/find")
+    public ResponseEntity<ImageDto> findById(
+            @RequestParam("imageId") String id
+    ) {
+        ImageDto pageResponse = imageService.getById(id);
+        return new ResponseEntity<>(pageResponse, HttpStatus.OK);
+    }
 }

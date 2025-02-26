@@ -33,6 +33,15 @@ public class ExceptionControllerAdvice {
     }
 
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> exceptionEntityNotFound(EntityNotFoundException e, WebRequest request) {
+        return  createResponse(
+                e.getMessage(),
+                HttpStatus.NOT_FOUND,
+                request);
+    }
+
+
     private ResponseEntity<ErrorDto> createResponse(String errorKey, HttpStatus httpStatus, WebRequest request ){
         return new ResponseEntity<>(createErrorDto(
                 i18nUtil.getMessage(errorKey, request, null),
