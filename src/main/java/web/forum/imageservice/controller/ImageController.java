@@ -55,10 +55,10 @@ public class ImageController {
     public ResponseEntity<PageResponse<ImageDto>> fetchList(
             @NotNull @RequestParam("page") Integer page
     ) {
-
         return new ResponseEntity<>(imageService.fetch(page), HttpStatus.OK);
-
     }
+
+
 
     @DeleteMapping("")
     public ResponseEntity<String> delete(

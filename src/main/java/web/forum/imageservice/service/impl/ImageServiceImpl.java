@@ -38,6 +38,7 @@ public class ImageServiceImpl implements IImageService {
     private final MongoTemplate mongoTemplate;
     private final MetaDataMapper metaDataMapper;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final IRedisCache imageMetaDataCache;
 
     @Override
     public ImageDto save(MultipartFile multipartFile,String targetId,String name) {
@@ -69,6 +70,7 @@ public class ImageServiceImpl implements IImageService {
 //            });
             return imageDto;
         } catch (IOException e) {
+            log.error("file image upload {}", e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -105,9 +107,17 @@ public class ImageServiceImpl implements IImageService {
     }
 
     @Override
+//    @Cacheable(value = "imagePage", key = "#page")
     public PageResponse<ImageDto> fetch(Integer page) {
+
+//        PageResponse<ImageDto> pageResponse = imageMetaDataCache.fetch(page);
+//        if(pageResponse.getItems().size()==0){
+//            pageResponse = fileMetaDataList(page);
+//            imageMetaDataCache.cache(pageResponse);
+//        }
+//        return pageResponse;
         Query query = new Query();
-        int PAGE_SIZE = 15;
+        final int PAGE_SIZE = 15;
         query.with(PageRequest.of(page-1, PAGE_SIZE));
         long count = mongoTemplate.count(query, FileMetaData.class);
         List<FileMetaData> files = mongoTemplate.find(query, FileMetaData.class);
@@ -118,16 +128,33 @@ public class ImageServiceImpl implements IImageService {
                         .page(page)
                         .maxPage((int) (count/ PAGE_SIZE))
                         .build()
-                );
+        );
+    }
 
+    private PageResponse<ImageDto> fileMetaDataList(Integer page){
+        Query query = new Query();
+        final int PAGE_SIZE = 15;
+        query.with(PageRequest.of(page-1, PAGE_SIZE));
+        long count = mongoTemplate.count(query, FileMetaData.class);
+        List<FileMetaData> files = mongoTemplate.find(query, FileMetaData.class);
+        return PageResponse.map(metaDataMapper::toDto,
+                PageResponse.<FileMetaData>builder()
+                        .items(files)
+                        .total(count)
+                        .page(page)
+                        .maxPage((int) (count/ PAGE_SIZE))
+                        .build()
+        );
     }
 
     @Override
+//    @CacheEvict(value = "imageById", key = "#imageId")
     public void delete(String imageId) {
       template.delete(new Query(Criteria.where("_id").is(imageId)));
     }
 
     @Override
+//    @Cacheable(value = "imageSearch", key = "#name + '-' + #page")
     public PageResponse<ImageDto> search(String name,Integer page) {
         Query query = new Query(Criteria.where("metadata.imageName").regex(".*" + name + ".*"));
         long count = mongoTemplate.count(query, FileMetaData.class);
@@ -140,6 +167,7 @@ public class ImageServiceImpl implements IImageService {
     }
 
     @Override
+//    @Cacheable(value = "imageMeta", key = "#id")
     public ImageDto getById(String id) {
         Query query = new Query(Criteria.where("_id").is(id));
         FileMetaData fileMetaData = mongoTemplate.findOne(query, FileMetaData.class);

@@ -6,10 +6,16 @@ spring:
       port: 27017
       host: localhost
       database: imagedb
+    redis:
+      host: host.docker.internal
+      port: 6380
   servlet:
+
     multipart:
       max-request-size: 50MB
       max-file-size: 40MB
+  cache:
+    type: redis
   kafka:
     producer:
       properties:
@@ -22,7 +28,16 @@ spring:
       auto-startup: false
     topic:
       imageSaved: image.saved
+logging:
+  file:
+    name: logs/app/log
+    path: logs
 server:
   port: 8082
   host: localhost
+client:
+  hostName:
+    localhost
+  port:
+    3000
 
