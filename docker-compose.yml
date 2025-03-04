@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   imageservice:
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: Dockerfile
@@ -24,6 +26,8 @@ services:
       CLIENT_PORT: 3000
 
   mongo:
+    env_file:
+      - .env
     image: mongo:latest
     hostname: mongo_db
     ports:
@@ -32,6 +36,8 @@ services:
       - mongo-data:/data/db
 
   redis:
+    env_file:
+      - .env
     image: redis:latest
     hostname: imageredis
     ports:
