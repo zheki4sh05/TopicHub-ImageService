@@ -5,6 +5,10 @@ plugins {
     id "io.freefair.lombok" version "8.12.1"
 }
 
+manifest {
+    attributes 'Main-Class': 'web.forum.imageservice.ImageServiceApplication'
+}
+
 group = 'web.forum'
 version = '0.0.1-SNAPSHOT'
 

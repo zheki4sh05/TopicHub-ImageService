@@ -60,14 +60,14 @@ public class ImageServiceImpl implements IImageService {
                     .id(fileID.toString())
                     .build();
 
-//          var kafkaRequest = kafkaTemplate.send(topic1Name, fileID.toString());
-//            kafkaRequest.whenComplete((result, exception)->{
-//                if(exception!=null){
-//                        log.error("failed kafka send message {}", exception.getMessage());
-//                }else{
-//                    log.info("message sent successfully:{}", result.getRecordMetadata());
-//                }
-//            });
+          var kafkaRequest = kafkaTemplate.send(topic1Name, fileID.toString());
+            kafkaRequest.whenComplete((result, exception)->{
+                if(exception!=null){
+                        log.error("failed kafka send message {}", exception.getMessage());
+                }else{
+                    log.info("message sent successfully:{}", result.getRecordMetadata());
+                }
+            });
             return imageDto;
         } catch (IOException e) {
             log.error("file image upload {}", e.getMessage());
@@ -116,7 +116,7 @@ public class ImageServiceImpl implements IImageService {
 //            imageMetaDataCache.cache(pageResponse);
 //        }
 //        return pageResponse;
-        Query query = new Query();
+        Query query = new Query(Criteria.where("metadata.imageName").ne("logo"));
         final int PAGE_SIZE = 15;
         query.with(PageRequest.of(page-1, PAGE_SIZE));
         long count = mongoTemplate.count(query, FileMetaData.class);
@@ -156,7 +156,7 @@ public class ImageServiceImpl implements IImageService {
     @Override
 //    @Cacheable(value = "imageSearch", key = "#name + '-' + #page")
     public PageResponse<ImageDto> search(String name,Integer page) {
-        Query query = new Query(Criteria.where("metadata.imageName").regex(".*" + name + ".*"));
+        Query query = new Query(Criteria.where("metadata.imageName").regex(".*" + name + ".*").andOperator(Criteria.where("metadata.imageName").ne("logo")));
         long count = mongoTemplate.count(query, FileMetaData.class);
         List<FileMetaData> files = mongoTemplate.find(query, FileMetaData.class);
         return PageResponse.<ImageDto>builder()

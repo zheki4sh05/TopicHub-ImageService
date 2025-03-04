@@ -3,12 +3,12 @@ spring:
     name: ImageService
   data:
     mongodb:
-      port: 27017
-      host: localhost
-      database: imagedb
+      port: ${MONGO_PORT}
+      host: ${MONGO_HOST}
+      database: ${MONGO_DB}
     redis:
-      host: host.docker.internal
-      port: 6380
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   servlet:
 
     multipart:
@@ -21,7 +21,7 @@ spring:
       properties:
         enable:
           idempotence: true
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
     listener:
       auto-startup: false
     streams:
@@ -33,11 +33,11 @@ logging:
     name: logs/app/log
     path: logs
 server:
-  port: 8082
-  host: localhost
+  port: ${SERVER_PORT}
+  host: ${SERVER_HOST}
 client:
   hostName:
-    localhost
+    ${CLIENT_HOST}
   port:
-    3000
+    ${CLIENT_PORT}
 

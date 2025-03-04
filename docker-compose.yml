@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  imageservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_DB: ${MONGO_DB}
+      REDIS_PORT: 6380
+      REDIS_HOST: localhost
+      KAFKA_HOST: localhost
+      KAFKA_PORT: 9092
+      SERVER_PORT: 8082
+      SERVER_HOST: localhost
+      CLIENT_HOST: localhost
+      CLIENT_PORT: 3000
+
+  mongo:
+    image: mongo:latest
+    hostname: mongo_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:latest
+    hostname: imageredis
+    ports:
+      - "6380:6380"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mongo-data:
+  redis-data:
