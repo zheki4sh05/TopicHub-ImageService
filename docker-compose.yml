@@ -18,12 +18,15 @@ services:
       MONGO_DB: ${MONGO_DB}
       REDIS_PORT: 6380
       REDIS_HOST: localhost
-      KAFKA_HOST: localhost
-      KAFKA_PORT: 9092
+      KAFKA_HOST: ${KAFKA_HOST}
+      KAFKA_PORT: ${KAFKA_PORT}
       SERVER_PORT: 8082
       SERVER_HOST: localhost
       CLIENT_HOST: localhost
       CLIENT_PORT: 3000
+    networks:
+      - app-network
+
 
   mongo:
     env_file:
@@ -34,6 +37,9 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - app-network
+
 
   redis:
     env_file:
@@ -44,7 +50,13 @@ services:
       - "6380:6380"
     volumes:
       - redis-data:/data
+    networks:
+      - app-network
+
 
 volumes:
   mongo-data:
   redis-data:
+networks:
+  app-network:
+    external: true
