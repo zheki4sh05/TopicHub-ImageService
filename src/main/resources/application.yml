@@ -9,6 +9,10 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      connect-timeout: 5000
+      jedis:
+        pool:
+          time-between-eviction-runs: 5000
   servlet:
 
     multipart:
@@ -28,6 +32,16 @@ spring:
       auto-startup: false
     topic:
       imageSaved: image.saved
+  boot:
+    admin:
+      client:
+        enabled: true
+        instance:
+          name: image-service
+          service-host-type: ip
+        url: http://localhost:8085
+        username: admin
+        password: admin
 logging:
   file:
     name: logs/app/log
@@ -40,4 +54,14 @@ client:
     ${CLIENT_HOST}
   port:
     ${CLIENT_PORT}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
 
